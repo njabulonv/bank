@@ -1,15 +1,15 @@
 
 CREATE TABLE BANK_ACCOUNT (
-  account_number INT AUTO_INCREMENT  PRIMARY KEY,
+  account_number INT PRIMARY KEY,
   account_type VARCHAR(250) NOT NULL,
   amount DOUBLE NOT NULL,
-  deposit DOUBLE NOT NULL,
-  withdraw DOUBLE NOT NULL,
-  transfers DOUBLE NOT NULL
+  deposit DOUBLE,
+  withdraw DOUBLE,
+  transfers DOUBLE
 );
 
 CREATE TABLE CLIENT (
-  client_id INT AUTO_INCREMENT  PRIMARY KEY,
+  client_id INT AUTO_INCREMENT PRIMARY KEY,
   name VARCHAR(250) NOT NULL,
   surname VARCHAR(250) NOT NULL,
   address VARCHAR(250) NOT NULL,
@@ -35,10 +35,10 @@ CREATE TABLE BANK_STATEMENT(
     clientName VARCHAR(250) NOT NULL,
     clientSurname  VARCHAR(250) NOT NULL,
     bank_date DATE NOT NULL,
-    bank_tme TIME NOT NULL,
+    bank_time TIME NOT NULL,
     description VARCHAR(250) NOT NULL,
     transaction_type VARCHAR(250) NOT NULL,
-    transfers DOUBLE NOT NULL,
+    transfers DOUBLE,
     account_number INT NOT NULL,
     foreign key (account_number) references bank_account(account_number)
 );

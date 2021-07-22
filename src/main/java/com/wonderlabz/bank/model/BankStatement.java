@@ -1,20 +1,43 @@
 package com.wonderlabz.bank.model;
 
+import javax.persistence.*;
 import java.sql.Date;
 import java.sql.Time;
 
+@Entity(name="BANK_STATEMENT")
 public class BankStatement {
 
+    @Id
+    @GeneratedValue(strategy = GenerationType.AUTO)
+    @Column(name = "bankstatement_id")
+    private int bankStatementId;
+
+    @Column(name = "clientName")
     private String clientName;
+
+    @Column(name = "clientSurname")
     private String clientSurname;
+
+    @Column(name = "bank_date")
     private Date date;
+
+    @Column(name = "bank_time")
     private Time time;
+
+    @Column(name = "description")
     private String description;
+
+    @Column(name = "transaction_type")
     private String transactionType;
+
+    @Column(name = "account_number")
     private String accountNumber;
+
+    @Column(name = "transfers")
     private double transfers;
 
-    public BankStatement(String clientName, String clientSurname, Date date, Time time, String description, String transactionType, String accountNumber) {
+    public BankStatement(int bankStatementId, String clientName, String clientSurname, Date date, Time time, String description, String transactionType, String accountNumber, double transfers) {
+        this.bankStatementId = bankStatementId;
         this.clientName = clientName;
         this.clientSurname = clientSurname;
         this.date = date;
@@ -22,6 +45,15 @@ public class BankStatement {
         this.description = description;
         this.transactionType = transactionType;
         this.accountNumber = accountNumber;
+        this.transfers = transfers;
+    }
+
+    public int getBankStatementId() {
+        return bankStatementId;
+    }
+
+    public void setBankStatementId(int bankStatementId) {
+        this.bankStatementId = bankStatementId;
     }
 
     public String getClientName() {
