@@ -33,13 +33,25 @@ public class BankStatement {
     @Column(name = "transfers")
     private double transfers;
 
-    public BankStatement(String clientName, String clientSurname, Date date, String description, String transactionType, String accountNumber) {
+    public BankStatement(int bankStatementId, String clientName, String clientSurname, Date date, String description, String transactionType, String accountNumber, double transfers) {
+        this.bankStatementId = bankStatementId;
         this.clientName = clientName;
         this.clientSurname = clientSurname;
         this.date = date;
         this.description = description;
         this.transactionType = transactionType;
         this.accountNumber = accountNumber;
+        this.transfers = transfers;
+    }
+
+    public BankStatement(String clientName, String clientSurname, Date date, String description, String transactionType, String accountNumber, double transfers) {
+        this.clientName = clientName;
+        this.clientSurname = clientSurname;
+        this.date = date;
+        this.description = description;
+        this.transactionType = transactionType;
+        this.accountNumber = accountNumber;
+        this.transfers = transfers;
     }
 
     public BankStatement(Date date, String description, String transactionType, String accountNumber) {
@@ -48,6 +60,10 @@ public class BankStatement {
         this.transactionType = transactionType;
         this.accountNumber = accountNumber;
     }
+
+    public BankStatement() {
+    }
+
     public BankStatement(Date date, String description, String transactionType, String accountNumber, double transfers) {
         this.date = date;
         this.description = description;

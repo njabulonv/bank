@@ -13,11 +13,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-
-import java.sql.Time;
-import java.time.LocalTime;
 import java.util.Date;
-import java.text.SimpleDateFormat;
 import java.util.Optional;
 
 @CrossOrigin(origins = "http://localhost:9091")
@@ -57,7 +53,7 @@ public class Controller {
                         description=   description+client.getName()+" "+client.getSurname()+" WITH ACCOUNT NUMBER: "+client.getAccountNumber();
                         BankStatement bankStmt
                                 = new BankStatement(client.getName(),client.getSurname(),date,
-                                description, transactionType, client.getAccountNumber());
+                                description, transactionType, client.getAccountNumber(),bankAcc.getDeposit());
 
                         stateInterface.save(bankStmt);
                         accInterface.save(bankAccount);
@@ -78,7 +74,7 @@ public class Controller {
                     description=   description+client.getName()+" "+client.getSurname()+" WITH ACCOUNT NUMBER: "+client.getAccountNumber();
                     BankStatement bankStmt
                             = new BankStatement(client.getName(),client.getSurname(),date,
-                            description, transactionType, client.getAccountNumber());
+                            description, transactionType, client.getAccountNumber(),overdraft);
 
                     stateInterface.save(bankStmt);
                     accInterface.save(bankAccount);
@@ -94,8 +90,9 @@ public class Controller {
         }
     }
 
-    @PutMapping("/deposit/{id}")
-    public ResponseEntity<ResponseMessage> moneyDeposit(@PathVariable("id") String accountNumber, @RequestBody BankAccount bankAcc) {
+    @PutMapping("/deposit/{accountNo}")
+    public ResponseEntity<ResponseMessage> moneyDeposit(@PathVariable("accountNo") String accountNumber,
+                                                        @RequestParam(value = "depositAmount", required = true) final double depositAmount) {
         Optional<BankAccount> bankAccObj = accInterface.findById(accountNumber);
 
         Date date = new Date();
@@ -107,14 +104,15 @@ public class Controller {
             if (bankAccObj.isPresent()) {
                 //addition of money deposit
                 BankAccount bankAccount = bankAccObj.get();
-                bankAccount.setAmount(bankAcc.getDeposit() + bankAccount.getAmount());
+                bankAccount.setDeposit(depositAmount);
+                bankAccount.setAmount(depositAmount + bankAccount.getAmount());
 
                 //Transaction logs entry
-                BankStatement existingBankStatement = stateInterface.findByAccountNumber( bankAccount.getAccountNumber());
+                BankStatement existingBankStatement = stateInterface.findByAccountNumber(bankAccount.getAccountNumber());
                 if(existingBankStatement != null) {
 
                     BankStatement bankStmt
-                            = new BankStatement(date,description, transactionType, bankAccount.getAccountNumber());
+                            = new BankStatement(date,description, transactionType, bankAccount.getAccountNumber(),depositAmount);
 
                     stateInterface.save(bankStmt);
                 }
@@ -134,8 +132,10 @@ public class Controller {
         }
     }
 
-    @PutMapping("/withdraw/{id}")
-    public ResponseEntity<ResponseMessage> moneyWithdraw(@PathVariable("id") String accountNumber, @RequestBody BankAccount bankAcc) {
+    @PutMapping("/withdraw/{accountNo}")
+    public ResponseEntity<ResponseMessage> moneyWithdraw(@PathVariable("accountNo") String accountNumber,
+    @RequestParam(value = "accountType", required = true) final String accountType,
+                                                         @RequestParam(value = "withdrawAmount", required = true) final double withdrawAmount) {
         Optional<BankAccount> bankAccObj = accInterface.findById(accountNumber);
         double overdraft = 100000;
         Date date = new Date();
@@ -149,34 +149,36 @@ public class Controller {
                 BankAccount bankAccount = bankAccObj.get();
                 BankStatement existingBankStatement = stateInterface.findByAccountNumber(bankAccount.getAccountNumber());
                 //For saving account withdrawals
-                if(bankAcc.getAccountType().equalsIgnoreCase("SAVINGS")){
+                if(accountType.equalsIgnoreCase("SAVINGS")){
 
-                    if(bankAccount.getAmount() >= bankAcc.getWithdraw()){
-                        bankAccount.setAmount(bankAccount.getAmount() - bankAcc.getWithdraw());
+                    if(bankAccount.getAmount() >= withdrawAmount){
+                        bankAccount.setAmount(bankAccount.getAmount() - withdrawAmount);
+                        bankAccount.setWithdraw(withdrawAmount);
                         accInterface.save(bankAccount);
                     }
                     //Transaction logs entry
                     if(existingBankStatement != null) {
 
                         BankStatement bankStmt
-                                = new BankStatement(date,description, transactionType, bankAccount.getAccountNumber());
+                                = new BankStatement(date,description, transactionType, bankAccount.getAccountNumber(),withdrawAmount);
 
                         stateInterface.save(bankStmt);
                     }
                     return ResponseEntity.status(HttpStatus.OK)
                             .body(new ResponseMessage(Constants.WITHDRAW_SUCCESS_MSG + bankAccount.getAmount()));
                 //For current account withdrawals
-                }else if(bankAcc.getAccountType().equalsIgnoreCase("CURRENT")){
+                }else if(accountType.equalsIgnoreCase("CURRENT")){
                     //condition check do not withdraw exceeding overdraft and account balance
-                    if(bankAccount.getAmount() >= bankAcc.getWithdraw() || bankAcc.getWithdraw() <= overdraft){
-                     bankAccount.setAmount(bankAccount.getAmount() - bankAcc.getWithdraw());
+                    if(bankAccount.getAmount() >= withdrawAmount || withdrawAmount <= overdraft){
+                     bankAccount.setAmount(bankAccount.getAmount() - withdrawAmount);
+                     bankAccount.setWithdraw(withdrawAmount);
                      accInterface.save(bankAccount);
                     }
                     //Transaction logs entry
                     if(existingBankStatement != null) {
 
                         BankStatement bankStmt
-                                = new BankStatement(date,description, transactionType, bankAccount.getAccountNumber());
+                                = new BankStatement(date,description, transactionType, bankAccount.getAccountNumber(),withdrawAmount);
 
                         stateInterface.save(bankStmt);
                     }
@@ -215,22 +217,29 @@ public class Controller {
 
                 //extract amount from account of send to decrease
                 BankAccount bankAccount = senderAccount.get();
+                bankAccount.setTransfers(transfers);
                 bankAccount.setAmount(bankAccount.getAmount() - transfers);
-
-                //Add amount from account to receiver account
-                BankAccount bankAccReceiver = receiptAccount.get();
-                bankAccReceiver.setAmount(bankAccReceiver.getAmount() + transfers);
-
-                //Transaction logs entry
-                BankStatement existingBankStatement = stateInterface.findByAccountNumber(bankAccount.getAccountNumber());
-                if(existingBankStatement != null) {
+                //Transaction logs entry for sender BankStatement
+                BankStatement senderBankStatement = stateInterface.findByAccountNumber(bankAccount.getAccountNumber());
+                if(senderBankStatement != null) {
 
                     BankStatement bankStmt
-                            = new BankStatement(date,description, transactionType, bankAccount.getAccountNumber());
-
+                            = new BankStatement(date,description, transactionType, bankAccount.getAccountNumber(),bankAccount.getAmount());
                     stateInterface.save(bankStmt);
                 }
 
+                //Add amount from account to receiver account
+                BankAccount bankAccReceiver = receiptAccount.get();
+                bankAccReceiver.setTransfers(transfers);
+                bankAccReceiver.setAmount(bankAccReceiver.getAmount() + transfers);
+                //Transaction logs entry for sender BankStatement
+                BankStatement receiverBankStatement = stateInterface.findByAccountNumber(bankAccReceiver.getAccountNumber());
+                if(receiverBankStatement != null) {
+
+                    BankStatement bankStmt
+                            = new BankStatement(date,description, transactionType, bankAccReceiver.getAccountNumber(),bankAccReceiver.getAmount());
+                    stateInterface.save(bankStmt);
+                }
                 accInterface.save(bankAccount);
                 accInterface.save(bankAccReceiver);
 
