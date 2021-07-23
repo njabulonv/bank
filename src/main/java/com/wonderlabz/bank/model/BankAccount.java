@@ -24,6 +24,7 @@ public class BankAccount {
     @Column(name = "transfers")
     private double transfers;
 
+
     @ManyToOne
     @JoinColumn(name="client_id")
     private Client client;
@@ -42,6 +43,7 @@ public class BankAccount {
         this.accountType = accountType;
         this.amount = amount;
     }
+
 
     public BankAccount() {
     }
@@ -62,9 +64,7 @@ public class BankAccount {
         this.accountNumber = accountNumber;
     }
 
-    public String getAccountType() {
-        return accountType;
-    }
+    public String getAccountType() {    return accountType;   }
 
     public void setAccountType(String accountType) {
         this.accountType = accountType;
@@ -101,4 +101,5 @@ public class BankAccount {
     public void setTransfers(double transfers) {
         this.transfers = transfers;
     }
+
 }

@@ -1,8 +1,8 @@
 package com.wonderlabz.bank.model;
 
 import javax.persistence.*;
-import java.sql.Date;
-import java.sql.Time;
+
+import java.util.Date;
 
 @Entity(name="BANK_STATEMENT")
 public class BankStatement {
@@ -21,9 +21,6 @@ public class BankStatement {
     @Column(name = "bank_date")
     private Date date;
 
-    @Column(name = "bank_time")
-    private Time time;
-
     @Column(name = "description")
     private String description;
 
@@ -36,21 +33,29 @@ public class BankStatement {
     @Column(name = "transfers")
     private double transfers;
 
-    public BankStatement(int bankStatementId, String clientName, String clientSurname, Date date, Time time, String description, String transactionType, String accountNumber, double transfers) {
-        this.bankStatementId = bankStatementId;
+    public BankStatement(String clientName, String clientSurname, Date date, String description, String transactionType, String accountNumber) {
         this.clientName = clientName;
         this.clientSurname = clientSurname;
         this.date = date;
-        this.time = time;
+        this.description = description;
+        this.transactionType = transactionType;
+        this.accountNumber = accountNumber;
+    }
+
+    public BankStatement(Date date, String description, String transactionType, String accountNumber) {
+        this.date = date;
+        this.description = description;
+        this.transactionType = transactionType;
+        this.accountNumber = accountNumber;
+    }
+    public BankStatement(Date date, String description, String transactionType, String accountNumber, double transfers) {
+        this.date = date;
         this.description = description;
         this.transactionType = transactionType;
         this.accountNumber = accountNumber;
         this.transfers = transfers;
     }
-
-    public int getBankStatementId() {
-        return bankStatementId;
-    }
+    public int getBankStatementId() {  return bankStatementId;   }
 
     public void setBankStatementId(int bankStatementId) {
         this.bankStatementId = bankStatementId;
@@ -78,14 +83,6 @@ public class BankStatement {
 
     public void setDate(Date date) {
         this.date = date;
-    }
-
-    public Time getTime() {
-        return time;
-    }
-
-    public void setTime(Time time) {
-        this.time = time;
     }
 
     public String getDescription() {

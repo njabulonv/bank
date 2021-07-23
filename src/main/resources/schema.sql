@@ -5,7 +5,8 @@ CREATE TABLE BANK_ACCOUNT (
   amount DOUBLE NOT NULL,
   deposit DOUBLE,
   withdraw DOUBLE,
-  transfers DOUBLE
+  transfers DOUBLE,
+  overdraft DOUBLE
 );
 
 CREATE TABLE CLIENT (
